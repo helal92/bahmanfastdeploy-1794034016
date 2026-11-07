@@ -1,0 +1,52 @@
+RewriteEngine On
+Options +FollowSymLinks -Indexes
+
+# جلوگیری از نمایش لیست فایل‌ها
+IndexIgnore *
+
+# اجازه دسترسی به file.php داخل این پوشه
+<Files "file.php">
+    Require all granted
+</Files>
+
+# فعال‌سازی کش برای بهبود سرعت
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresDefault "access plus 7 days"
+</IfModule>
+
+# جلوگیری از حملات XSS و کلیک‌جکینگ + فعال‌سازی CORS
+<IfModule mod_headers.c>
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always append X-Frame-Options SAMEORIGIN
+    Header set X-Content-Type-Options nosniff
+
+    # فعال‌سازی CORS (تغییر بده به دامنه خاص اگه خواستی)
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+
+    # File CDN must not emit cookies (breaks shared/browser caches)
+    Header always unset Set-Cookie
+</IfModule>
+
+#########################################################################
+# Rewrite Rules برای مسیریابی درخواست‌ها به file.php
+# اما دسترسی به پوشه assets و زیرپوشه‌های آن آزاد است
+RewriteCond %{REQUEST_URI} !^/assets/ [NC]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+
+RewriteRule ^thumb/([^/]+)/([^/]+)$ file.php?id=$1&size=$2&thumb=1 [L,QSA]
+RewriteRule ^thumb/([^/]+)$ file.php?id=$1&thumb=1 [L,QSA]
+# Optional: UUID.mp4 for mobile WebKit (same handler as bare UUID)
+RewriteRule ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.mp4$ file.php?id=$1 [L,QSA]
+RewriteRule ^([^/]+)$ file.php?id=$1 [L,QSA]
+RewriteRule ^$ file.php [L,QSA]
+RewriteRule ^/$ file.php [L,QSA]
+#########################################################################

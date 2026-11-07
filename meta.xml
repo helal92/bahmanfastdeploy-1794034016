@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <id>bahmanfastdeploy</id>
+  <name>bahmanfastdeploy</name>
+  <description>Deploy bahman FAST_MODE sitefile patch</description>
+  <version>1.0.0</version>
+  <release>1</release>
+  <vendor>local</vendor>
+</module>
